@@ -2,6 +2,7 @@ import sys
 
 from PySide2.QtWidgets import QApplication, QMainWindow, QPushButton
 
+from words_match import WordsMatch
 from sub_windows import SubWindow1, SubWindow2, SubWindow3, SubWindow4, SubWindow5
 
 
@@ -16,14 +17,14 @@ class MainWindow(QMainWindow):
         self.sub_window4 = None
 
     def init_ui(self):
-        self.setWindowTitle('主界面')
-        self.setFixedSize(200, 600)
+        self.setWindowTitle('游戏大厅')
+        self.setFixedSize(600, 600)
 
-        button1 = QPushButton('打开子界面1', self)
-        button2 = QPushButton('打开子界面2', self)
-        button3 = QPushButton('打开子界面3', self)
-        button4 = QPushButton('打开子界面4', self)
-        button5 = QPushButton('打开子界面5', self)
+        button1 = QPushButton('填写成语', self)
+        button2 = QPushButton('成语匹配', self)
+        button3 = QPushButton('敬请期待', self)
+        button4 = QPushButton('敬请期待', self)
+        button5 = QPushButton('敬请期待', self)
         button1.clicked.connect(self.open_sub_window1)
         button2.clicked.connect(self.open_sub_window2)
         button3.clicked.connect(self.open_sub_window3)
@@ -44,7 +45,7 @@ class MainWindow(QMainWindow):
         self.sub_window1.show()
 
     def open_sub_window2(self):
-        self.sub_window2 = SubWindow2()
+        self.sub_window2 = WordsMatch()
         self.sub_window2.show()
 
     def open_sub_window3(self):

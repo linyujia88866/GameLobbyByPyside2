@@ -8,7 +8,7 @@ class SubWindow1(QDialog):
 
     def init_ui(self):
         self.setFixedSize(200, 200)
-        self.setWindowTitle('子界面1')
+        self.setWindowTitle('填写成语')
         layout = QVBoxLayout()
         layout.addWidget(QLabel('这是子界面1'))
         close_button = QPushButton('关闭', self)
