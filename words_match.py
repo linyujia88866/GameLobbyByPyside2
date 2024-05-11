@@ -5,8 +5,8 @@ from PySide2.QtWidgets import (QWidget, QGridLayout,
                                QPushButton, QApplication)
 from PySide2.QtWidgets import QMessageBox, QLabel, QHBoxLayout
 
-from gen_words import gen_words
-from read_words import random_words
+from utils.gen_words import gen_words
+from utils.read_words import random_words
 
 
 class WordsMatch(QWidget):
@@ -37,15 +37,14 @@ class WordsMatch(QWidget):
 
         positions = [(i, j) for i in range(5) for j in range(4)]
         print(positions)
-
+        x =1
         for position, name in zip(positions, words):
 
             if name == '':
                 continue
             button = QPushButton(name)
+            button.clicked.connect(lambda state=1, b=button: self.click_btn(b))
             button.setFixedHeight(100)
-
-            button.clicked.connect(lambda checked, button=button: self.click_btn(button))
             self.set_default_style(button)
             grid.addWidget(button, *position)
             self.buttons.append(button)
@@ -95,6 +94,8 @@ class WordsMatch(QWidget):
         self.right_num = 0
 
     def click_btn(self, button):
+        print("执行了")
+        print(button)
         text = button.text()
         cur_word = self.select_word + text
         cur_word2 = text + self.select_word

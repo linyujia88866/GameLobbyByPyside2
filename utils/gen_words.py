@@ -1,7 +1,5 @@
 import random
 
-import read_words
-
 
 # # 将每个成语分割成单个词语，并组合成16组
 # word_groups = []

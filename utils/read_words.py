@@ -1,12 +1,19 @@
 # with open('wordsBase.txt', 'r') as file:
 #     content = file.read()
 #     print(content)
+import os
 import random
 
 
 def read_words():
     words = []
-    with open('wordsBase.txt', 'r', encoding='utf-8') as file:
+    current_directory = os.path.dirname(__file__)
+
+    # 打印当前文件路径
+    print("当前文件路径:", current_directory)
+
+    print("当前工作目录是:", current_directory)
+    with open(os.path.join(current_directory, '../resource/wordsBase.txt'), 'r', encoding='utf-8') as file:
         content = file.read()
         new_content = content.replace("、", "").replace(",", "").replace(" ", "").replace("，", "").replace("\n", "")
         length = new_content.__len__() // 4
