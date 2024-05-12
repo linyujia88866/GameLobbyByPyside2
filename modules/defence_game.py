@@ -69,32 +69,33 @@ class DefenceGame(QWidget):
     def __init__(self):
         super().__init__()
         # self.progress_bar = QProgressBar()
+        self.step = 1
         self.init_tower = None
         self.label_monster_life = None
         self.game_timer = QTimer(self)
         # self.progress_value = 0
-        self.counter = 0
-        self.buttons = []
-        self.towers = []
-        self.attack = 50
-        self.score = 0
-        self.speed = 50
-        self.grade = 1
-        self.upgrade_line = 10
-        self.upgrade_attack = 50
-        self.init_life = 100.0
-        self.monster_name = "怪物"
-        self.paodan_x = 0
-        self.paodan_y =350
-        self.radius = 10
+        self.counter = 0  # 前三轮炮塔不攻击，用于计算当前轮次
+        self.buttons = []  # 当前已出现的怪物
+        self.towers = []  # 所有的炮塔
+        self.attack = 50  # 当前的炮塔攻击力
+        self.score = 0  # 击杀怪物数量
+        self.speed = 50  # 怪物行进速度
+        self.grade = 1  # 当前等级
+        self.upgrade_line = 10  # 升级门槛
+        self.upgrade_attack = 50  # 本次升级增加的攻击力
+        self.init_life = 100.0  # 怪物初始生命值
+        self.monster_name = "怪物"  # 怪物的名称
+        self.bullet_x = 0  # 子弹初始位置，也就是炮塔初始位置
+        self.bullet_y = 350  # 子弹初始位置，也就是炮塔初始位置
+        self.radius = 10  # 子弹的半径
 
         self.label_attack = QLabel("", self)
         self.label_monster_life = QLabel("", self)
         self.label_score = QLabel("", self)
         self.label_upgrade_target = QLabel("", self)
-        self.end_point_x = 0
+        self.end_point_x = 0  # 子弹的结束位置，也就是当前最靠前的怪兽的位置
         self.end_point_y = 0
-        self.to_delete_monster = None
+        self.to_delete_monster = None  # 指向生命已经降为0的怪兽，并会在下一轮攻击之前回收
 
         self.init_ui()
 
@@ -163,10 +164,9 @@ class DefenceGame(QWidget):
     def draw_attack(self):
         self.end_point_x = -(self.width() / 2 - self.buttons[0].x()) + self.buttons[0].width() / 2
         self.end_point_y = -self.height() / 2 + self.buttons[0].y() + self.buttons[0].height() / 2 + 20
-        print("终结位置")
-        print(self.end_point_y)
-        self.paodan_x = 0
-        self.paodan_y = 350
+
+        self.bullet_x = 0
+        self.bullet_y = 350
         self.step = (self.end_point_y - 350)/10
 
         self.animationTimer = QTimer(self)
@@ -174,12 +174,10 @@ class DefenceGame(QWidget):
         self.animationTimer.start(50)
 
     def animate(self):
-        self.paodan_y += self.step
-        print("此刻跑单位制")
-        print(self.paodan_y)
-        self.paodan_x = 0 + (self.end_point_x - 0)/(self.end_point_y-350)*(self.paodan_y-350)
+        self.bullet_y += self.step
+        self.bullet_x = 0 + (self.end_point_x - 0)/(self.end_point_y-350)*(self.bullet_y-350)
 
-        if math.fabs(self.paodan_y-self.end_point_y) < 1:
+        if math.fabs(self.bullet_y-self.end_point_y) < 1:
             self.animationTimer.stop()
             # self.animationFinished.emit()  # 动画结束，发出信号
         self.update()
@@ -227,13 +225,10 @@ class DefenceGame(QWidget):
             choice = message_box.exec_()
 
             if choice == QMessageBox.AcceptRole:
-                print(f'你选择了增加{self.upgrade_attack}攻击力')
                 self.attack += self.upgrade_attack
             elif choice == QMessageBox.RejectRole:
-                print('你选择了按二次方增长攻击力')
                 self.attack = math.pow(math.sqrt(self.attack) + 1, 2) // 1
             else:
-                print('你选择了攻击力变为原来的1.1倍')
                 self.attack = self.attack * 1.1 // 1
 
             self.upgrade_line += 10
@@ -278,9 +273,9 @@ class DefenceGame(QWidget):
         painter.setPen(pen)
         brush = QBrush(Qt.cyan)
         painter.setBrush(brush)
-        circleRect = QRectF(self.paodan_x - self.radius, self.paodan_y - self.radius,
+        circle_rect = QRectF(self.bullet_x - self.radius, self.bullet_y - self.radius,
                             2 * self.radius, 2 * self.radius)
-        painter.drawEllipse(circleRect)
+        painter.drawEllipse(circle_rect)
 
 
 def main():

@@ -2,9 +2,9 @@ import sys
 
 from PySide2.QtWidgets import QApplication, QMainWindow, QPushButton
 
-from defence_game import DefenceGame
-from words_match import WordsMatch
-from sub_windows import SubWindow1, SubWindow2, SubWindow3, SubWindow4, SubWindow5
+from modules.defence_game import DefenceGame
+from modules.words_match import WordsMatch
+from sub_windows import SubWindow1, SubWindow4, SubWindow5
 
 
 class MainWindow(QMainWindow):
