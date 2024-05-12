@@ -4,7 +4,7 @@ import sys
 
 from PySide2.QtCore import QTimer, QLine, QPoint, QRectF, Signal
 from PySide2.QtGui import QPainter, QPen, Qt, QBrush
-from PySide2.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QLabel
+from PySide2.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QLabel, QDialog
 from PySide2.QtWidgets import QPushButton, QMessageBox, QSizePolicy
 
 from component.button_with_progress import MyProgressButton
@@ -65,11 +65,14 @@ def create_horizontal_line():
 
 
 # noinspection PyTypeChecker
-class DefenceGame(QWidget):
+class DefenceGame(QDialog):
     animationFinished = Signal()
+
     def __init__(self):
         super().__init__()
         # self.progress_bar = QProgressBar()
+        self.close_btn = None
+        self.reset_btn = None
         self.step = 1
         self.init_tower = None
         self.label_monster_life = None
@@ -126,12 +129,24 @@ class DefenceGame(QWidget):
         self.init_tower = create_button_with_stylesheet(self, "基础炮塔")
         self.init_tower.move(400 - self.init_tower.width() // 2, 850)
 
+        self.close_btn = QPushButton("退出游戏", self)
+        self.close_btn.setParent(self)
+        self.reset_btn = QPushButton("重新开始", self)
+        self.close_btn.clicked.connect(self.close)
+        self.reset_btn.clicked.connect(self.reset)
+
+        self.reset_btn.move(500, 950)
+        self.close_btn.move(620, 950)
+
         self.set_data_frame()
 
         self.game_timer.timeout.connect(self.create_new_monster)
         self.game_timer.start(1000)  # 每1000毫秒更新一次进度
 
         self.show()
+
+    def close_window(self):
+        print("-------")
 
     def set_data_frame(self):
         self.label_attack.setText(f"基础炮塔攻击力：{self.attack}")
@@ -177,14 +192,13 @@ class DefenceGame(QWidget):
         self.game_timer.start(300)
 
     def draw_attack(self):
-        print(self.buttons[0].text())
         self.game_timer.stop()
         self.end_point_x = -(self.width() / 2 - self.buttons[0].x()) + self.buttons[0].width() / 2
         self.end_point_y = -self.height() / 2 + self.buttons[0].y() + self.buttons[0].height() / 2 + 20
 
         self.bullet_x = 0
         self.bullet_y = 350
-        self.step = (self.end_point_y - 350)/10
+        self.step = (self.end_point_y - 350) / 10
 
         self.animationTimer = QTimer(self)
         self.animationTimer.timeout.connect(self.animate)
@@ -192,9 +206,9 @@ class DefenceGame(QWidget):
 
     def animate(self):
         self.bullet_y += self.step
-        self.bullet_x = 0 + (self.end_point_x - 0)/(self.end_point_y-350)*(self.bullet_y-350)
+        self.bullet_x = 0 + (self.end_point_x - 0) / (self.end_point_y - 350) * (self.bullet_y - 350)
 
-        if math.fabs(self.bullet_y-self.end_point_y) < 1:
+        if math.fabs(self.bullet_y - self.end_point_y) < 1:
             self.animationTimer.stop()
             self.animationFinished.emit()
             # self.animationFinished.emit()  # 动画结束，发出信号
@@ -255,18 +269,25 @@ class DefenceGame(QWidget):
 
     def reset(self):
         self.score = 0
-        print("重置游戏")
+        self.speed = 50
+        self.grade = 1
+        for button in self.buttons:
+            button.deleteLater()
+        self.counter = 0
+        self.init_life = 100
+        self.attack = 50
+        self.upgrade_attack = 50
+        self.upgrade_line = 10
+        self.buttons = []
+        self.set_data_frame()
+        self.game_timer.start(1000)
 
     def show_information(self):
-        reply = QMessageBox.information(None, '游戏失败', '怪物攻破了城墙！！',
+        reply = QMessageBox.information(None, '游戏失败', '怪物攻破了城墙！！\n是否重新开始？',
                                         QMessageBox.Ok | QMessageBox.Cancel,
                                         QMessageBox.Ok)
         if reply == QMessageBox.Ok:
-            print('点击了 OK')
             self.reset()
-
-        else:
-            print('点击了 Cancel')
 
     def paintEvent(self, event):
         # painter = QPainter(self)
@@ -289,7 +310,7 @@ class DefenceGame(QWidget):
         brush = QBrush(Qt.cyan)
         painter.setBrush(brush)
         circle_rect = QRectF(self.bullet_x - self.radius, self.bullet_y - self.radius,
-                            2 * self.radius, 2 * self.radius)
+                             2 * self.radius, 2 * self.radius)
         painter.drawEllipse(circle_rect)
 
 

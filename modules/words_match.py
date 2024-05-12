@@ -13,6 +13,8 @@ class WordsMatch(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.close_btn = None
+        self.reset_btn = None
         self.select = []
         self.select_word = ""
         self.select_btn = None
@@ -26,18 +28,10 @@ class WordsMatch(QWidget):
         self.setFixedSize(800, 800)
         grid = QGridLayout()
         self.setLayout(grid)
-
-        names = ['Cls', 'Bck', '', 'Close',
-                 '7', '8', '9', '/',
-                 '4', '5', '6', '*',
-                 '1', '2', '3', '-',
-                 '0', '.', '=', '+']
         self.origin_words = random_words(8)
         words = gen_words(self.origin_words)
 
         positions = [(i, j) for i in range(5) for j in range(4)]
-        print(positions)
-        x =1
         for position, name in zip(positions, words):
 
             if name == '':
@@ -60,7 +54,7 @@ class WordsMatch(QWidget):
         self.close_btn.clicked.connect(self.close)
         self.reset_btn.clicked.connect(self.reset)
 
-        hlay = QHBoxLayout()
+        h_lay = QHBoxLayout()
         label = QLabel("游戏难度：简单  ")
 
         # self.difficult = "简单"
@@ -69,13 +63,13 @@ class WordsMatch(QWidget):
         diff_btn = QPushButton("困难")
         diff_btn.clicked.connect(lambda: label.setText("游戏难度：困难  "))
 
-        hlay.addWidget(label)
-        hlay.setAlignment(label, Qt.AlignRight)
+        h_lay.addWidget(label)
+        h_lay.setAlignment(label, Qt.AlignRight)
 
-        hlay.addWidget(easy_btn)
-        hlay.addWidget(diff_btn)
+        h_lay.addWidget(easy_btn)
+        h_lay.addWidget(diff_btn)
         h = QWidget()
-        h.setLayout(hlay)
+        h.setLayout(h_lay)
         grid.addWidget(h, 4, 0, 1, 2)
 
         self.show()
@@ -83,8 +77,6 @@ class WordsMatch(QWidget):
     def reset(self):
         self.origin_words = random_words(8)
         words = gen_words(self.origin_words)
-        print("本关游戏词汇")
-        print(words)
         for i, name in enumerate(words):
             self.buttons[i].setText(name)
             self.buttons[i].setDisabled(False)
@@ -94,8 +86,6 @@ class WordsMatch(QWidget):
         self.right_num = 0
 
     def click_btn(self, button):
-        print("执行了")
-        print(button)
         text = button.text()
         cur_word = self.select_word + text
         cur_word2 = text + self.select_word
@@ -108,7 +98,6 @@ class WordsMatch(QWidget):
             self.select_word = ""
             self.right_num = self.right_num + 2
             if self.right_num == 16:
-                print("你过关了")
                 self.showInformation()
                 # QMessageBox.information(None, '恭喜过关', '你完成了所有成语的匹配!!!!')
         else:
@@ -120,11 +109,7 @@ class WordsMatch(QWidget):
                                         QMessageBox.Ok | QMessageBox.Cancel,
                                         QMessageBox.Ok)
         if reply == QMessageBox.Ok:
-            print('点击了 OK')
             self.reset()
-
-        else:
-            print('点击了 Cancel')
 
     def set_green(self, button):
         button.setStyleSheet("QPushButton {"

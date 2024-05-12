@@ -1,6 +1,3 @@
-# with open('wordsBase.txt', 'r') as file:
-#     content = file.read()
-#     print(content)
 import os
 import random
 
@@ -8,11 +5,6 @@ import random
 def read_words():
     words = []
     current_directory = os.path.dirname(__file__)
-
-    # 打印当前文件路径
-    print("当前文件路径:", current_directory)
-
-    print("当前工作目录是:", current_directory)
     with open(os.path.join(current_directory, '../resource/wordsBase.txt'), 'r', encoding='utf-8') as file:
         content = file.read()
         new_content = content.replace("、", "").replace(",", "").replace(" ", "").replace("，", "").replace("\n", "")
@@ -26,14 +18,14 @@ def read_words():
 def random_words(x):
     words = read_words()
     length = words.__len__()
-    res = []
+    result = []
     i = 0
     while i < x:
         j = random.randint(0, length)
-        if words[j] not in res:
-            res.append(words[j])
+        if words[j] not in result:
+            result.append(words[j])
             i = i + 1
-    return res
+    return result
 
 
 if __name__ == '__main__':
