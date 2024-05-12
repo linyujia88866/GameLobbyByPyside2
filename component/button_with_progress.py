@@ -42,3 +42,12 @@ class MyProgressButton(QWidget):
 
     def setValue(self, value):
         self.progress.setValue(value)
+
+
+    def setDisbled(self, x):
+        self.button.setEnabled(x)
+        self.progress.setEnabled(x)
+        self.button.setStyleSheet("QPushButton {"  # 设置进度条样式
+                                    "background-color: #999999;"  # 背景颜色
+                                    "}"
+                        )

@@ -2,7 +2,8 @@ import math
 import random
 import sys
 
-from PySide2.QtCore import QTimer
+from PySide2.QtCore import QTimer, QLine, QPoint, QRectF
+from PySide2.QtGui import QPainter, QPen, Qt, QBrush
 from PySide2.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QLabel
 from PySide2.QtWidgets import QPushButton, QMessageBox, QSizePolicy
 
@@ -38,8 +39,8 @@ def create_red_button_with_stylesheet(text, parent):
                          "QPushButton:pressed {"
                          "  background-color: rgb(136, 70, 5); /* 更深的天蓝色 */"
                          "}")
-    button.button.setFixedHeight(50)
-    button.setFixedHeight(70)
+    button.button.setFixedHeight(30)
+    button.setFixedHeight(50)
     button.setFixedWidth(120)
 
     # button.progress.value()
@@ -83,11 +84,17 @@ class DefenceGame(QWidget):
         self.upgrade_attack = 50
         self.init_life = 100.0
         self.monster_name = "怪物"
+        self.paodan_x = 0
+        self.paodan_y =350
+        self.radius = 10
 
         self.label_attack = QLabel("", self)
         self.label_monster_life = QLabel("", self)
         self.label_score = QLabel("", self)
         self.label_upgrade_target = QLabel("", self)
+        self.end_point_x = 0
+        self.end_point_y = 0
+        self.to_delete_monster = None
 
         self.init_ui()
 
@@ -135,7 +142,6 @@ class DefenceGame(QWidget):
         button.setParent(self)
         button.progress.setMaximum(self.init_life)
         button.progress.setValue(button.progress.maximum())
-        # button.setParent(self)
         x = random.randint(0, 800 - button.width())
 
         self.buttons.append(button)
@@ -154,19 +160,51 @@ class DefenceGame(QWidget):
         self.attack_and_refresh()
         self.upgrade()
 
+    def draw_attack(self):
+        self.end_point_x = -(self.width() / 2 - self.buttons[0].x()) + self.buttons[0].width() / 2
+        self.end_point_y = -self.height() / 2 + self.buttons[0].y() + self.buttons[0].height() / 2 + 20
+        print("终结位置")
+        print(self.end_point_y)
+        self.paodan_x = 0
+        self.paodan_y = 350
+        self.step = (self.end_point_y - 350)/10
+
+        self.animationTimer = QTimer(self)
+        self.animationTimer.timeout.connect(self.animate)
+        self.animationTimer.start(50)
+
+    def animate(self):
+        self.paodan_y += self.step
+        print("此刻跑单位制")
+        print(self.paodan_y)
+        self.paodan_x = 0 + (self.end_point_x - 0)/(self.end_point_y-350)*(self.paodan_y-350)
+
+        if math.fabs(self.paodan_y-self.end_point_y) < 1:
+            self.animationTimer.stop()
+            # self.animationFinished.emit()  # 动画结束，发出信号
+        self.update()
+
     def attack_and_refresh(self):
+        if self.to_delete_monster is not None:
+            self.to_delete_monster.deleteLater()
+            self.to_delete_monster = None
         life = float(self.buttons[0].progress.value())
         if life > 0:
             if (life - self.attack) <= 0:
-                self.buttons[0].deleteLater()
+                self.buttons[0].setValue(0)
+                self.buttons[0].setDisbled(True)
+                self.to_delete_monster = self.buttons[0]
                 self.score += 1
                 self.buttons.pop(0)
             else:
                 self.buttons[0].setValue((life - self.attack))
         else:
             self.buttons[0].deleteLater()
-            self.score += 1
             self.buttons.pop(0)
+            self.attack_and_refresh()
+            return
+
+        self.draw_attack()
         self.set_data_frame()
 
     def upgrade(self):
@@ -187,7 +225,7 @@ class DefenceGame(QWidget):
 
             # 显示消息框
             choice = message_box.exec_()
-            print(choice)
+
             if choice == QMessageBox.AcceptRole:
                 print(f'你选择了增加{self.upgrade_attack}攻击力')
                 self.attack += self.upgrade_attack
@@ -219,6 +257,30 @@ class DefenceGame(QWidget):
 
         else:
             print('点击了 Cancel')
+
+    def paintEvent(self, event):
+        # painter = QPainter(self)
+        # painter.setRenderHint(QPainter.Antialiasing)
+        # painter.translate(self.width() / 2, self.height() / 2)
+        #
+        # pen = QPen(Qt.black, 2)
+        # painter.setPen(pen)
+        # # 绘制轨迹
+        # brush = QBrush(Qt.blue)
+        # painter.setBrush(brush)
+        #
+        # painter.drawLine(QLine(QPoint(0, 350), QPoint(self.end_point_x, self.end_point_y)))
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.translate(self.width() / 2, self.height() / 2)
+        pen = QPen(Qt.blue, 2)
+        painter.setPen(pen)
+        brush = QBrush(Qt.cyan)
+        painter.setBrush(brush)
+        circleRect = QRectF(self.paodan_x - self.radius, self.paodan_y - self.radius,
+                            2 * self.radius, 2 * self.radius)
+        painter.drawEllipse(circleRect)
 
 
 def main():
