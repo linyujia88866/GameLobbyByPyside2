@@ -10,7 +10,7 @@ class TowerDefenseGame(QMainWindow):
     def initUI(self):
         # 创建一个按钮
         self.button = QPushButton('Start Game', self)
-        self.button.clicked.connect(self.startGame)
+        self.button.clicked.connect(self.start_game)
         self.button.move(100, 50)
 
         # 设置窗口属性
@@ -18,7 +18,7 @@ class TowerDefenseGame(QMainWindow):
         self.setWindowTitle('Tower Defense')
         self.show()
 
-    def startGame(self):
+    def start_game(self):
         # 游戏开始的逻辑
         print('Game started!')
 

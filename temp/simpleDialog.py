@@ -12,13 +12,13 @@ class Example(QWidget):
 
     def initUI(self):
 
-        okButton = QPushButton("OK")
-        cancelButton = QPushButton("Cancel")
+        ok_button = QPushButton("OK")
+        cancel_button = QPushButton("Cancel")
 
         hbox = QHBoxLayout()
         hbox.addStretch(1)
-        hbox.addWidget(okButton)
-        hbox.addWidget(cancelButton)
+        hbox.addWidget(ok_button)
+        hbox.addWidget(cancel_button)
 
         vbox = QVBoxLayout()
         vbox.addStretch(1)

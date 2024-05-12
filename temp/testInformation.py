@@ -4,13 +4,13 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 class ExampleApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         # 初始化界面代码...
         pass
 
-    def showInformation(self):
+    def show_information(self):
         reply = QMessageBox.information(self, '信息标题', '这是一条信息', QMessageBox.Ok | QMessageBox.Cancel,
                                         QMessageBox.Ok)
         if reply == QMessageBox.Ok:
@@ -22,6 +22,6 @@ class ExampleApp(QMainWindow):
 if __name__ == '__main__':
     app = QApplication([])
     ex = ExampleApp()
-    ex.showInformation()
+    ex.show_information()
     ex.show()
     app.exec_()

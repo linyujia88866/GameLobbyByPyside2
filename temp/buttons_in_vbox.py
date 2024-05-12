@@ -1,13 +1,14 @@
 import sys
+
 from PySide2.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QMessageBox
 
 
 class ButtonApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         # 创建一个垂直布局
         self.vbox = QVBoxLayout()
 
