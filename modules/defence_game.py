@@ -2,7 +2,7 @@ import math
 import random
 import sys
 
-from PySide2.QtCore import QTimer, QLine, QPoint, QRectF
+from PySide2.QtCore import QTimer, QLine, QPoint, QRectF, Signal
 from PySide2.QtGui import QPainter, QPen, Qt, QBrush
 from PySide2.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QLabel
 from PySide2.QtWidgets import QPushButton, QMessageBox, QSizePolicy
@@ -66,6 +66,7 @@ def create_horizontal_line():
 
 # noinspection PyTypeChecker
 class DefenceGame(QWidget):
+    animationFinished = Signal()
     def __init__(self):
         super().__init__()
         # self.progress_bar = QProgressBar()
@@ -102,6 +103,7 @@ class DefenceGame(QWidget):
     def init_ui(self):
         self.setWindowTitle('塔防游戏')
         self.setFixedSize(800, 1000)
+        self.animationFinished.connect(self.refresh_game)
         self.move(500, 0)
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -139,7 +141,8 @@ class DefenceGame(QWidget):
 
     def create_new_monster(self):
         self.counter += 1
-        button = create_red_button_with_stylesheet(self.monster_name, self)
+
+        button = create_red_button_with_stylesheet(f"{self.monster_name}{self.counter}", self)
         button.setParent(self)
         button.progress.setMaximum(self.init_life)
         button.progress.setValue(button.progress.maximum())
@@ -148,20 +151,34 @@ class DefenceGame(QWidget):
         self.buttons.append(button)
         # 在这里可以添加更多的按钮设置代码
         button.show()
-        # button.y()
         button.move(x, 0)
         for b in self.buttons:
             b.move(b.x(), self.speed + b.y())
-            if b.y() > 800:
-                self.game_timer.stop()
-                self.show_information()
-                return
-        if self.counter < 3:
+            # if b.y() > 800:
+            #     self.game_timer.stop()
+            #     self.show_information()
+            #     return
+
+        if self.buttons[0].y() > 800:
+            self.game_timer.stop()
+            self.show_information()
             return
+
+        if self.counter > 3:
+            self.draw_attack()
+
+    def refresh_game(self):
+        self.bullet_x = 0
+        self.bullet_y = 350
+        self.update()
         self.attack_and_refresh()
+        self.set_data_frame()
         self.upgrade()
+        self.game_timer.start(300)
 
     def draw_attack(self):
+        print(self.buttons[0].text())
+        self.game_timer.stop()
         self.end_point_x = -(self.width() / 2 - self.buttons[0].x()) + self.buttons[0].width() / 2
         self.end_point_y = -self.height() / 2 + self.buttons[0].y() + self.buttons[0].height() / 2 + 20
 
@@ -179,31 +196,29 @@ class DefenceGame(QWidget):
 
         if math.fabs(self.bullet_y-self.end_point_y) < 1:
             self.animationTimer.stop()
+            self.animationFinished.emit()
             # self.animationFinished.emit()  # 动画结束，发出信号
         self.update()
 
     def attack_and_refresh(self):
-        if self.to_delete_monster is not None:
-            self.to_delete_monster.deleteLater()
-            self.to_delete_monster = None
+        # if self.to_delete_monster is not None:
+        #     self.to_delete_monster.deleteLater()
+        #     self.to_delete_monster = None
         life = float(self.buttons[0].progress.value())
         if life > 0:
             if (life - self.attack) <= 0:
                 self.buttons[0].setValue(0)
                 self.buttons[0].setDisbled(True)
-                self.to_delete_monster = self.buttons[0]
+                self.to_delete_monster = self.buttons.pop(0)
+                self.to_delete_monster.deleteLater()
                 self.score += 1
-                self.buttons.pop(0)
+
             else:
                 self.buttons[0].setValue((life - self.attack))
         else:
             self.buttons[0].deleteLater()
             self.buttons.pop(0)
             self.attack_and_refresh()
-            return
-
-        self.draw_attack()
-        self.set_data_frame()
 
     def upgrade(self):
         if self.score >= self.upgrade_line:
