@@ -2,6 +2,7 @@ import sys
 
 from PySide2.QtWidgets import QApplication, QMainWindow, QPushButton
 
+from defence_game import DefenceGame
 from words_match import WordsMatch
 from sub_windows import SubWindow1, SubWindow2, SubWindow3, SubWindow4, SubWindow5
 
@@ -22,7 +23,7 @@ class MainWindow(QMainWindow):
 
         button1 = QPushButton('填写成语', self)
         button2 = QPushButton('成语匹配', self)
-        button3 = QPushButton('敬请期待', self)
+        button3 = QPushButton('塔防游戏', self)
         button4 = QPushButton('敬请期待', self)
         button5 = QPushButton('敬请期待', self)
         button1.clicked.connect(self.open_sub_window1)
@@ -49,7 +50,7 @@ class MainWindow(QMainWindow):
         self.sub_window2.show()
 
     def open_sub_window3(self):
-        self.sub_window3 = SubWindow3()
+        self.sub_window3 = DefenceGame()
         self.sub_window3.show()
 
     def open_sub_window4(self):
