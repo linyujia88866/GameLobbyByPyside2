@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/LocalNoteBook.iml" filepath="$PROJECT_DIR$/.idea/LocalNoteBook.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/GameLobbyByPyside2.iml" filepath="$PROJECT_DIR$/.idea/GameLobbyByPyside2.iml" />
     </modules>
   </component>
 </project>

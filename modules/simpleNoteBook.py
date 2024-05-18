@@ -1,21 +1,149 @@
 import sys
 
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, Signal
 from PySide2.QtWidgets import QApplication, QMainWindow, QTextEdit, QStatusBar, QVBoxLayout, QWidget, QHBoxLayout, \
-    QLabel, QRadioButton, QGridLayout, QDialog, QComboBox, QLineEdit, QPushButton, QMessageBox
+    QLabel, QRadioButton, QGridLayout, QDialog, QComboBox, QLineEdit, QPushButton, QMessageBox, QTreeWidget, \
+    QTreeWidgetItem
 
-from utils.database_util import insert_note, query_cates
+from utils.database_util import insert_note, query_cates, query_notes, query_note
 
 
-class NoteBook(QMainWindow):
+class NotebookMainWin(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.catalog_widget = None
+        self.note_content_widget = None
+        self.status_bar = None
+        self.init_ui()
 
-    def initUI(self):
-        self.mode = "read"
+    def init_ui(self):
         # 设置窗口标题
         self.setWindowTitle('简易笔记本')
+        # 设置窗口的尺寸
+        self.setGeometry(300, 300, 400, 300)
+        self.setFixedSize(800, 500)
+
+        # 创建一个布局
+        layout = QGridLayout()
+
+        # # 创建中心控件
+        central_widget = QWidget()
+        central_widget.setLayout(layout)
+        self.setCentralWidget(central_widget)
+
+        self.note_content_widget = NoteBook()
+        self.catalog_widget = Catalogue()
+        layout.addWidget(self.note_content_widget, 0, 1, 1, 1)
+        layout.addWidget(self.catalog_widget, 0, 0, 1, 1)
+        layout.setColumnStretch(1, 1)
+
+        self.catalog_widget.get_content.connect(self.click_title)
+
+        # 创建状态栏
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+        self.show()
+
+    def click_title(self, text):
+        response = query_note(text)
+        content = response.get("content")
+        self.note_content_widget.titleEdit.setText(text)
+        self.note_content_widget.textEdit.setText(content)
+
+
+class Catalogue(QWidget):
+    get_content = Signal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.tree = None
+        self.layout = QGridLayout()
+        self.data = {}
+        self.init_ui()
+
+    def init_ui(self):
+        # 创建一个QTreeWidget
+        self.tree = QTreeWidget()
+        # 设置列数
+        self.tree.setColumnCount(1)
+        # 设置头部信息
+        self.tree.setHeaderLabels(['所有笔记'])
+        # 创建树节点
+        # self.populate_tree()
+
+        self.layout.addWidget(self.tree, 0, 0, 1, 1)
+        self.setLayout(self.layout)
+        self.get_data()
+        self.set_data()
+
+        # 将信号与槽函数连接
+        self.tree.itemClicked.connect(self.on_item_clicked)
+
+    def populate_tree(self):
+        # 添加顶级节点
+        top_level_item = QTreeWidgetItem(self.tree)
+        top_level_item.setText(0, 'Top Level 1')
+        # top_level_item.setText(1, 'Data 1')
+        # 添加子级节点
+        child_item = QTreeWidgetItem(top_level_item)
+        child_item.setText(0, 'Child 1')
+        # child_item.setText(1, 'Child Data 1')
+        # 添加另一个顶级节点
+        top_level_item2 = QTreeWidgetItem(self.tree)
+        top_level_item2.setText(0, 'Top Level 2')
+        # top_level_item2.setText(1, 'Data 2')
+
+    def get_data(self):
+        response = query_notes()
+        result = response.get('content')
+
+        res_list = (result.replace("[", "").replace("]", "").replace("'", "")
+                    .replace("'", "").replace("(", "").replace(")", "").replace(" ", "")
+                    .split(","))
+        for cat, title in zip(res_list[1::2], res_list[::2]):
+            if cat in self.data:
+                self.data[cat].append(title)
+            else:
+                self.data[cat] = []
+                self.data[cat].append(title)
+
+    def set_data(self):
+        for cat, titles in self.data.items():
+            top_level_item = QTreeWidgetItem(self.tree)
+            top_level_item.setText(0, cat)
+
+            for title in titles:
+                child_item = QTreeWidgetItem(top_level_item)
+                child_item.setText(0, title)
+
+    def on_item_clicked(self, item):
+        if item.parent() is not None:
+            self.get_content.emit(item.text(0))
+
+
+# noinspection PyTypeChecker
+class NoteBook(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.status_bar = None
+        self.edit_btn = None
+        self.read_btn = None
+        self.save_btn = None
+        self.left_widget = None
+        self.content_widget = None
+        self.title_widget = None
+        self.button_widget = None
+        self.textEdit = None
+        self.content_label = None
+        self.title_label = None
+        self.titleEdit = None
+        self.mode = None
+        self.init_ui()
+
+    def init_ui(self):
+        self.mode = "read"
+        # 设置窗口标题
+        # self.setWindowTitle('简易笔记本')
 
         self.titleEdit = QTextEdit()
         self.title_label = QLabel("标题")
@@ -58,10 +186,10 @@ class NoteBook(QMainWindow):
         layout.addWidget(self.title_widget)
         layout.addWidget(self.content_widget)
 
-        # 创建中心控件
-        centralWidget = QWidget()
-        centralWidget.setLayout(layout)
-        self.setCentralWidget(centralWidget)
+        # # 创建中心控件
+        # central_widget = QWidget()
+        # central_widget.setLayout(layout)
+        # self.setCentralWidget(central_widget)
 
         self.save_btn = QPushButton("保存笔记")
         self.read_btn = QPushButton("浏览模式")
@@ -90,13 +218,14 @@ class NoteBook(QMainWindow):
         h_layout3.setStretch(3, 1)
 
         # 创建状态栏
-        self.statusBar = QStatusBar()
-        self.setStatusBar(self.statusBar)
+        # self.status_bar = QStatusBar()
+        # self.setStatusBar(self.status_bar)
 
         # 设置窗口的尺寸
-        self.setGeometry(300, 300, 400, 300)
-        self.setFixedSize(800, 500)
-        self.show()
+        # self.setGeometry(300, 300, 400, 300)
+        # self.setFixedSize(800, 500)
+        self.setLayout(layout)
+        # self.show()
         self.edit()
 
     def read(self):
@@ -237,7 +366,8 @@ class SaveDialog(QDialog):
 
 def main():
     app = QApplication(sys.argv)
-    mainWindow = NoteBook()
+    mainWindow = NotebookMainWin()
+    # mainWindow = NoteBook()
     # sd = SaveDialog()
     # sd.show()
     sys.exit(app.exec_())
