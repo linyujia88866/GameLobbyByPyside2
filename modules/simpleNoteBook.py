@@ -5,14 +5,12 @@ from PySide2.QtWidgets import QApplication, QMainWindow, QTextEdit, QStatusBar, 
     QLabel, QRadioButton, QGridLayout, QDialog, QComboBox, QLineEdit, QPushButton, QMessageBox, QTreeWidget, \
     QTreeWidgetItem
 
-from utils.database_util import insert_note, query_cates, query_notes, query_note
+from utils.database_util import insert_note, query_cates, query_notes, query_note, update_note
 
 
 class NotebookMainWin(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.catalog_widget = None
-        self.note_content_widget = None
         self.status_bar = None
         self.init_ui()
 
@@ -38,6 +36,7 @@ class NotebookMainWin(QMainWindow):
         layout.setColumnStretch(1, 1)
 
         self.catalog_widget.get_content.connect(self.click_title)
+        self.note_content_widget.sava.connect(self.save_note)
 
         # 创建状态栏
         self.status_bar = QStatusBar()
@@ -50,13 +49,16 @@ class NotebookMainWin(QMainWindow):
         self.note_content_widget.titleEdit.setText(text)
         self.note_content_widget.textEdit.setText(content)
 
+    def save_note(self):
+        self.catalog_widget.get_data()
+        self.catalog_widget.set_data()
+
 
 class Catalogue(QWidget):
     get_content = Signal(str)
 
     def __init__(self):
         super().__init__()
-        self.tree = None
         self.layout = QGridLayout()
         self.data = {}
         self.init_ui()
@@ -94,6 +96,8 @@ class Catalogue(QWidget):
         # top_level_item2.setText(1, 'Data 2')
 
     def get_data(self):
+        self.tree.clear()
+        self.data.clear()
         response = query_notes()
         result = response.get('content')
 
@@ -123,6 +127,8 @@ class Catalogue(QWidget):
 
 # noinspection PyTypeChecker
 class NoteBook(QWidget):
+    sava = Signal()
+
     def __init__(self):
         super().__init__()
         self.status_bar = None
@@ -259,7 +265,13 @@ class NoteBook(QWidget):
         text = self.textEdit.toPlainText()
         title = self.titleEdit.toPlainText()
         try:
-            insert_note(title, text, cate)
+            get_response = query_note(title)
+            if "success" in get_response.get("message"):
+                update_note(title, text, cate)
+            else:
+
+                insert_note(title, text, cate)
+            self.sava.emit()
         except Exception as err:
             QMessageBox.warning(None, "保存失败", str(err), QMessageBox.Ok)
             return
@@ -327,6 +339,7 @@ class SaveDialog(QDialog):
 
         self.slc_radio.toggled.connect(self.change_mode)
         self.comboBox.currentIndexChanged.connect(self.change_category)
+        self.new_cate_line.textChanged.connect(self.change_category)
         self.mode = False
         self.query_data()
         self.comboBox.setCurrentIndex(0)
@@ -350,7 +363,10 @@ class SaveDialog(QDialog):
         return categories
 
     def change_category(self):
-        SaveDialog.category = self.comboBox.currentText()
+        if not self.mode:
+            SaveDialog.category = self.comboBox.currentText()
+        else:
+            SaveDialog.category = self.new_cate_line.text()
 
     def change_mode(self):
         self.mode = not self.mode

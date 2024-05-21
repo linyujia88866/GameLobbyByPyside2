@@ -48,6 +48,12 @@ def insert_note(title, content, category):
     return post_response
 
 
+def update_note(title, content, category):
+    post_url = f'http://127.0.0.1:8888/update'
+    post_response = post_request(post_url, {'title': title, 'content': content, 'category': category})
+    return post_response
+
+
 if __name__ == '__main__':
     query_note("第一篇笔记")
 
