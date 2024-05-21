@@ -8,11 +8,12 @@ from PySide2.QtWidgets import QApplication, QMainWindow, QTextEdit, QStatusBar, 
 from utils.database_util import insert_note, query_cates, query_notes, query_note, update_note
 
 
-class NotebookMainWin(QMainWindow):
+class NotebookMainWin(QDialog):
     def __init__(self):
         super().__init__()
         self.status_bar = None
         self.init_ui()
+        self.show()
 
     def init_ui(self):
         # 设置窗口标题
@@ -22,13 +23,8 @@ class NotebookMainWin(QMainWindow):
         self.setFixedSize(800, 500)
 
         # 创建一个布局
-        layout = QGridLayout()
-
-        # # 创建中心控件
-        central_widget = QWidget()
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
-
+        layout = QGridLayout(self)
+        self.setLayout(layout)
         self.note_content_widget = NoteBook()
         self.catalog_widget = Catalogue()
         layout.addWidget(self.note_content_widget, 0, 1, 1, 1)
@@ -37,11 +33,6 @@ class NotebookMainWin(QMainWindow):
 
         self.catalog_widget.get_content.connect(self.click_title)
         self.note_content_widget.sava.connect(self.save_note)
-
-        # 创建状态栏
-        self.status_bar = QStatusBar()
-        self.setStatusBar(self.status_bar)
-        self.show()
 
     def click_title(self, text):
         response = query_note(text)
