@@ -1,5 +1,7 @@
 import sys
+from time import sleep
 
+import requests
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtWidgets import QApplication, QMainWindow, QTextEdit, QStatusBar, QVBoxLayout, QWidget, QHBoxLayout, \
     QLabel, QRadioButton, QGridLayout, QDialog, QComboBox, QLineEdit, QPushButton, QMessageBox, QTreeWidget, \
@@ -14,6 +16,8 @@ class NotebookMainWin(QDialog):
         self.status_bar = None
         self.init_ui()
         self.show()
+        self.catalog_widget.get_data()
+        self.catalog_widget.set_data()
 
     def init_ui(self):
         # 设置窗口标题
@@ -66,8 +70,8 @@ class Catalogue(QWidget):
 
         self.layout.addWidget(self.tree, 0, 0, 1, 1)
         self.setLayout(self.layout)
-        self.get_data()
-        self.set_data()
+        # self.get_data()
+        # self.set_data()
 
         # 将信号与槽函数连接
         self.tree.itemClicked.connect(self.on_item_clicked)
@@ -89,7 +93,12 @@ class Catalogue(QWidget):
     def get_data(self):
         self.tree.clear()
         self.data.clear()
-        response = query_notes()
+        try:
+            response = query_notes()
+        except requests.exceptions.ConnectionError:
+            print("连接不上数据库")
+            return
+
         result = response.get('content')
 
         res_list = (result.replace("[", "").replace("]", "").replace("'", "")
